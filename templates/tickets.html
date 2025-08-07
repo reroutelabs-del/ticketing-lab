@@ -1,0 +1,31 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <title>All Tickets</title>
+</head>
+<body>
+  <h1>All Submitted Tickets</h1>
+  <table border="1">
+    <tr>
+      <th>ID</th>
+      <th>User</th>
+      <th>Issue</th>
+      <th>Priority</th>
+      <th>Status</th>
+      <th>Created</th>
+    </tr>
+    {% for ticket in tickets %}
+    <tr>
+      <td>{{ ticket.ID }}</td>
+      <td>{{ ticket.User }}</td>
+      <td>{{ ticket.Issue }}</td>
+      <td>{{ ticket.Priority }}</td>
+      <td>{{ ticket.Status }}</td>
+      <td>{{ ticket.Created }}</td>
+    </tr>
+    {% endfor %}
+  </table>
+  <br>
+  <a href="/">➕ Submit Another Ticket</a>
+</body>
+</html>

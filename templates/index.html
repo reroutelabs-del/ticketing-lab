@@ -1,0 +1,27 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <title>Create Ticket</title>
+</head>
+<body>
+  <h1>Create a Ticket</h1>
+  <form method="POST" action="/submit">
+    <label>Name:</label><br>
+    <input type="text" name="user" required><br><br>
+    
+    <label>Issue:</label><br>
+    <textarea name="issue" required></textarea><br><br>
+    
+    <label>Priority:</label><br>
+    <select name="priority">
+      <option>Low</option>
+      <option>Medium</option>
+      <option>High</option>
+    </select><br><br>
+    
+    <button type="submit">Submit Ticket</button>
+  </form>
+  <br>
+  <a href="/tickets">📋 View Submitted Tickets</a>
+</body>
+</html>
