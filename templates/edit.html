@@ -1,0 +1,46 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>Edit Ticket</title>
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
+</head>
+<body class="bg-light">
+  <div class="container mt-5">
+    <h2>✏️ Edit Ticket: {{ ticket.ticket_id }}</h2>
+
+    <form method="POST" class="card p-4 shadow-sm">
+      <div class="mb-3">
+        <label class="form-label">User</label>
+        <input type="text" name="user" class="form-control" value="{{ ticket.user }}" required>
+      </div>
+
+      <div class="mb-3">
+        <label class="form-label">Issue</label>
+        <textarea name="issue" class="form-control" required>{{ ticket.issue }}</textarea>
+      </div>
+
+      <div class="mb-3">
+        <label class="form-label">Priority</label>
+        <select name="priority" class="form-select">
+          {% for level in ['Low', 'Medium', 'High'] %}
+            <option value="{{ level }}" {% if ticket.priority == level %}selected{% endif %}>{{ level }}</option>
+          {% endfor %}
+        </select>
+      </div>
+
+      <div class="mb-3">
+        <label class="form-label">Status</label>
+        <select name="status" class="form-select">
+          {% for stat in ['Open', 'In Progress', 'Closed'] %}
+            <option value="{{ stat }}" {% if ticket.status == stat %}selected{% endif %}>{{ stat }}</option>
+          {% endfor %}
+        </select>
+      </div>
+
+      <button type="submit" class="btn btn-primary">💾 Save Changes</button>
+      <a href="/tickets" class="btn btn-secondary">Cancel</a>
+    </form>
+  </div>
+</body>
+</html>

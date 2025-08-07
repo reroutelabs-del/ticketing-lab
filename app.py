@@ -1,54 +1,91 @@
-from flask import Flask, request, jsonify, render_template, redirect, url_for
-import csv
+from flask import Flask, request, render_template, redirect, url_for
+import json
 import uuid
-from datetime import datetime
-import os
+import datetime
 
 app = Flask(__name__)
+TICKET_FILE = 'tickets.json'
 
-TICKET_FILE = 'tickets.csv'
+# ---------- Utilities ----------
+def load_tickets():
+    try:
+        with open(TICKET_FILE, 'r') as f:
+            return json.load(f)
+    except FileNotFoundError:
+        return []
 
-# Route: Home page with form
+def save_tickets(tickets):
+    with open(TICKET_FILE, 'w') as f:
+        json.dump(tickets, f, indent=4)
+
+# ---------- Routes ----------
+
 @app.route('/')
 def home():
-    return render_template('index.html')
+    return redirect(url_for('submit_ticket'))
 
-# Route: Handle form POST
-@app.route('/submit', methods=['POST'])
+@app.route('/submit', methods=['GET', 'POST'])
 def submit_ticket():
-    user = request.form['user']
-    issue = request.form['issue']
-    priority = request.form['priority']
+    if request.method == 'POST':
+        tickets = load_tickets()
+        new_ticket = {
+            "ticket_id": str(uuid.uuid4())[:8],
+            "user": request.form['user'],
+            "issue": request.form['issue'],
+            "priority": request.form['priority'],
+            "status": "Open",
+            "created_at": datetime.datetime.now().strftime("%Y-%m-%d %H:%M:%S"),
+            "updated_at": "",
+            "root_cause": "",
+            "resolution": ""
+        }
+        tickets.append(new_ticket)
+        save_tickets(tickets)
+        return redirect(url_for('view_tickets'))
+    return render_template('submit.html')
 
-    ticket = {
-        "ID": str(uuid.uuid4()),
-        "User": user,
-        "Issue": issue,
-        "Priority": priority,
-        "Status": "Open",
-        "Created": datetime.now().strftime("%Y-%m-%d %H:%M:%S")
-    }
-
-    file_exists = os.path.isfile(TICKET_FILE)
-
-    with open(TICKET_FILE, 'a', newline='') as f:
-        writer = csv.DictWriter(f, fieldnames=ticket.keys())
-        if not file_exists:
-            writer.writeheader()
-        writer.writerow(ticket)
-
-    return redirect(url_for('view_tickets'))
-
-# Route: View all submitted tickets
 @app.route('/tickets')
 def view_tickets():
-    tickets = []
-    if os.path.exists(TICKET_FILE):
-        with open(TICKET_FILE, 'r') as f:
-            reader = csv.DictReader(f)
-            tickets = list(reader)
+    tickets = load_tickets()
     return render_template('tickets.html', tickets=tickets)
 
+@app.route('/edit/<ticket_id>', methods=['GET', 'POST'])
+def edit_ticket(ticket_id):
+    tickets = load_tickets()
+    ticket = next((t for t in tickets if t['ticket_id'] == ticket_id), None)
+
+    if not ticket:
+        return "Ticket not found", 404
+
+    if request.method == 'POST':
+        ticket['user'] = request.form['user']
+        ticket['issue'] = request.form['issue']
+        ticket['priority'] = request.form['priority']
+        ticket['status'] = request.form['status']
+        ticket['updated_at'] = datetime.datetime.now().strftime("%Y-%m-%d %H:%M:%S")
+        save_tickets(tickets)
+        return redirect(url_for('view_tickets'))
+
+    return render_template('edit.html', ticket=ticket)
+
+@app.route('/resolve/<ticket_id>', methods=['GET', 'POST'])
+def resolve_ticket(ticket_id):
+    tickets = load_tickets()
+    ticket = next((t for t in tickets if t['ticket_id'] == ticket_id), None)
+
+    if not ticket:
+        return "Ticket not found", 404
+
+    if request.method == 'POST':
+        ticket['root_cause'] = request.form['root_cause']
+        ticket['resolution'] = request.form['resolution']
+        ticket['status'] = "Closed"
+        ticket['updated_at'] = datetime.datetime.now().strftime("%Y-%m-%d %H:%M:%S")
+        save_tickets(tickets)
+        return redirect(url_for('view_tickets'))
+
+    return render_template('resolve.html', ticket=ticket)
+
+# ---------- Run Server ----------
 if __name__ == '__main__':
-    print("🚀 Ticketing Web App Running")
-    app.run(host='0.0.0.0', port=5000, debug=True)
+    app.run(debug=True)
